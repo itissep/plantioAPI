@@ -7,20 +7,23 @@ struct PlantsController: RouteCollection {
         let plantsRoutes = routes.grouped("plantio", "plants")
         
         plantsRoutes.get(use: getAllHandler)
+        
         plantsRoutes.get(":plantID", use: getHandler)
-        plantsRoutes.put(":plantID", use: updateHandler)
-        plantsRoutes.delete(":plantID", use: deleteHandler)
+        
         plantsRoutes.get("search", use: searchHandler)
         plantsRoutes.get("first", use: getFirstHandler)
         plantsRoutes.get("sorted", use: sortedHandler)
         
         plantsRoutes.get(":plantID", "user", use: getUserHandler)
         
-        let basicAuthMiddleware = User.authenticator()
+        let tokenAuthMiddleware = Token.authenticator()
         let guardAuthMiddleware = User.guardMiddleware()
-
-        let protected = plantsRoutes.grouped(basicAuthMiddleware, guardAuthMiddleware)
-        protected.post(use: createHandler)
+        
+        let tokenAuthGroup = plantsRoutes.grouped(tokenAuthMiddleware, guardAuthMiddleware)
+        
+        tokenAuthGroup.put(":plantID", use: updateHandler)
+        tokenAuthGroup.delete(":plantID", use: deleteHandler)
+        tokenAuthGroup.post(use: createHandler)
     }
     
     func getAllHandler(_ req: Request) -> EventLoopFuture<[Plant]> {
@@ -29,7 +32,19 @@ struct PlantsController: RouteCollection {
     
     func createHandler(_ req: Request) throws -> EventLoopFuture<Plant> {
         let data = try req.content.decode(CreatePlantData.self)
-        let plant = Plant(name: data.name, desc: data.desc, userID: data.userID)
+        
+        
+        let user = try req.auth.require(User.self)
+//        // 2
+//        let acronym = try Acronym(
+//        short: data.short,
+//        long: data.long,
+//        userID: user.requireID())
+        let plant = try Plant(
+            name: data.name,
+            desc: data.desc,
+            userID: user.requireID()
+        )
         return plant.save(on: req.db).map { plant }
     }
     
@@ -40,16 +55,41 @@ struct PlantsController: RouteCollection {
     
     func updateHandler(_ req: Request) throws -> EventLoopFuture<Plant> {
         let updateData = try req.content.decode(CreatePlantData.self)
+        let user = try req.auth.require(User.self)
+        let userID = try user.requireID()
         return Plant.find(req.parameters.get("plantID"), on: req.db)
             .unwrap(or: Abort(.notFound)).flatMap { plant in
                 plant.name = updateData.name
                 plant.desc = updateData.desc
-                plant.$user.id = updateData.userID
+                plant.$user.id = userID
                 return plant.save(on: req.db).map {
                     plant
                 }
             }
     }
+    
+//    func updateHandler(
+//        _ req: Request) throws
+//    -> EventLoopFuture<Acronym> {
+//        let updateData =
+//        try req.content.decode(CreateAcronymData.self)
+//        // 1
+//        let user = try req.auth.require(User.self)
+//        // 2
+//        let userID = try user.requireID()
+//        return Acronym
+//            .find(req.parameters.get("acronymID"), on: req.db)
+//            .unwrap(or: Abort(.notFound))
+//            .flatMap { acronym in
+//                acronym.short = updateData.short
+//                acronym.long = updateData.long
+//                // 3
+//                acronym.$user.id = userID
+//                return acronym.save(on: req.db).map {
+//                    acronym
+//                }
+//            }
+//    }
     
     func deleteHandler(_ req: Request)
     -> EventLoopFuture<HTTPStatus> {

@@ -13,6 +13,7 @@ public func configure(_ app: Application) async throws {
     
     app.migrations.add(CreateUser())
     app.migrations.add(CreatePlant())
+    app.migrations.add(CreateToken())
     
     app.logger.logLevel = .debug
     

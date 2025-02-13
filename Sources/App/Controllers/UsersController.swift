@@ -9,6 +9,11 @@ struct UsersController: RouteCollection {
         usersRoute.get(use: getAllHandler)
         usersRoute.get(":userID", use: getHandler)
         usersRoute.get(":userID", "plants", use: getAcronymsHandler)
+        
+        let basicAuthMiddleware = User.authenticator()
+        let basicAuthGroup = usersRoute.grouped(basicAuthMiddleware)
+
+        basicAuthGroup.post("login", use: loginHandler)
     }
     
     func createHandler(_ req: Request) throws -> EventLoopFuture<User.Public> {
@@ -29,5 +34,13 @@ struct UsersController: RouteCollection {
         User.find(req.parameters.get("userID"), on: req.db).unwrap(or: Abort(.notFound)).flatMap { user in
             user.$plants.get(on: req.db)
         }
+    }
+
+    func loginHandler(_ req: Request) throws -> EventLoopFuture<Token> {
+
+        let user = try req.auth.require(User.self)
+        let token = try Token.generate(for: user)
+
+        return token.save(on: req.db).map { token }
     }
 }
