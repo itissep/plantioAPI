@@ -7,7 +7,6 @@ struct PlantsController: RouteCollection {
         let plantsRoutes = routes.grouped("plantio", "plants")
         
         plantsRoutes.get(use: getAllHandler)
-        plantsRoutes.post(use: createHandler)
         plantsRoutes.get(":plantID", use: getHandler)
         plantsRoutes.put(":plantID", use: updateHandler)
         plantsRoutes.delete(":plantID", use: deleteHandler)
@@ -16,6 +15,12 @@ struct PlantsController: RouteCollection {
         plantsRoutes.get("sorted", use: sortedHandler)
         
         plantsRoutes.get(":plantID", "user", use: getUserHandler)
+        
+        let basicAuthMiddleware = User.authenticator()
+        let guardAuthMiddleware = User.guardMiddleware()
+
+        let protected = plantsRoutes.grouped(basicAuthMiddleware, guardAuthMiddleware)
+        protected.post(use: createHandler)
     }
     
     func getAllHandler(_ req: Request) -> EventLoopFuture<[Plant]> {
