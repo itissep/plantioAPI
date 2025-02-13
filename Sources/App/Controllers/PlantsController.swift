@@ -77,11 +77,11 @@ struct PlantsController: RouteCollection {
         return Plant.query(on: req.db).sort(\.$name, .ascending).all()
     }
     
-    func getUserHandler(_ req: Request) -> EventLoopFuture<User> {
+    func getUserHandler(_ req: Request) -> EventLoopFuture<User.Public> {
         Plant.find(req.parameters.get("plantID"), on: req.db)
             .unwrap(or: Abort(.notFound))
             .flatMap { plant in
-                plant.$user.get(on: req.db)
+                plant.$user.get(on: req.db).convertToPublic()
             }
     }
 }
