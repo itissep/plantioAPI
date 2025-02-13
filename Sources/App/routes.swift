@@ -1,11 +1,9 @@
 import Vapor
 
 func routes(_ app: Application) throws {
-    app.get { req async in
-        "It works!"
-    }
-
-    app.get("hello") { req async -> String in
-        "Hello, world!"
-    }
+    
+    app.routes.caseInsensitive = true
+    
+    try app.register(collection: UsersController())
+    try app.register(collection: PlantsController())
 }
