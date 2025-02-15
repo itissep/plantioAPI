@@ -11,18 +11,45 @@ final class Plant: Model, Content {
     @Field(key: "name")
     var name: String
     
-    @Field(key: "desc")
-    var desc: String
+    @OptionalField(key: "desc")
+    var desc: String?
+
+    @OptionalField(key: "type")
+    var type: String?
+    
+    @OptionalField(key: "wateringPeriod")
+    var wateringPeriod: Int?
     
     @Parent(key: "userID")
     var user: User
     
+    // add event
+    
+    //MARK:  Timestamps
+    
+    @Timestamp(key: "created_at", on: .create)
+    var createdAt: Date?
+
+    @Timestamp(key: "updated_at", on: .update)
+    var updatedAt: Date?
+    
     init() {}
     
-    init(id: UUID? = nil, name: String, desc: String, userID: User.IDValue) {
+    init(
+        id: UUID? = nil,
+        name: String,
+        desc: String?,
+        userID: User.IDValue,
+        wateringPeriod: Int?,
+        type: String?
+    ) {
         self.id = id
         self.name = name
         self.desc = desc
+        self.type = type
         self.$user.id = userID
+        self.wateringPeriod = wateringPeriod
     }
 }
+
+// TODO: add plant category
