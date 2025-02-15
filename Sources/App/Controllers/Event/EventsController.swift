@@ -7,15 +7,11 @@ struct EventsController: RouteCollection {
         let routes = routes.grouped("plantio", "events")
         
         routes.get(use: getAllHandler)
-        
         routes.get(":eventID", use: getHandler)
-        
-//        routes.get("search", use: searchHandler)
         routes.get("first", use: getFirstHandler)
-//        routes.get("sorted", use: sortedHandler)
-        
         routes.get(":eventID", "plant", use: getPlantHandler)
         
+        //MARK: authed routes
         let tokenAuthMiddleware = Token.authenticator()
         let guardAuthMiddleware = User.guardMiddleware()
         
@@ -24,6 +20,11 @@ struct EventsController: RouteCollection {
         tokenAuthGroup.put(":eventID", use: updateHandler)
         tokenAuthGroup.delete(":eventID", use: deleteHandler)
         tokenAuthGroup.post(use: createHandler)
+        
+        //MARK: categories routes
+        tokenAuthGroup.post(":eventID", "categories", ":categoryID", use: addCategoriesHandler)
+        routes.get(":eventID", "categories", use: getCategoriesHandler)
+        tokenAuthGroup.delete(":eventID", "categories", ":categoryID", use: removeCategoriesHandler)
     }
     
     func getAllHandler(_ req: Request) -> EventLoopFuture<[Event]> {
@@ -59,37 +60,58 @@ struct EventsController: RouteCollection {
             }
     }
     
-    func deleteHandler(_ req: Request)
-    -> EventLoopFuture<HTTPStatus> {
+    func deleteHandler(_ req: Request) -> EventLoopFuture<HTTPStatus> {
         Event.find(req.parameters.get("eventID"), on: req.db)
             .unwrap(or: Abort(.notFound))
-            .flatMap { Event in
-                Event.delete(on: req.db)
+            .flatMap { event in
+                event.delete(on: req.db)
                     .transform(to: .noContent)
             }
     }
     
-//    func searchHandler(_ req: Request) throws -> EventLoopFuture<[Event]> {
-//        guard let searchTerm = req
-//            .query[String.self, at: "term"] else {
-//            throw Abort(.badRequest)
-//        }
-//        return Event.query(on: req.db).group(.or) { or in
-//            or.filter(\.$name == searchTerm)
-//            or.filter(\.$desc == searchTerm)
-//        }.all()
-//    }
+    // MARK: - Categories
+    
+    func getCategoriesHandler(_ req: Request) -> EventLoopFuture<[EventCategory]> {
+        Event.find(req.parameters.get("eventID"), on: req.db)
+            .unwrap(or: Abort(.notFound))
+            .flatMap { event in
+                event.$categories.query(on: req.db).all()
+            }
+    }
+    
+    func addCategoriesHandler(_ req: Request)-> EventLoopFuture<HTTPStatus> {
+        let eventQuery = Event.find(req.parameters.get("eventID"), on: req.db)
+            .unwrap(or: Abort(.notFound))
+        let categoryQuery = EventCategory.find(req.parameters.get("categoryID"), on: req.db)
+            .unwrap(or: Abort(.notFound))
+        return eventQuery.and(categoryQuery)
+            .flatMap { event, category in
+                event.$categories
+                    .attach(category, on: req.db)
+                    .transform(to: .created)
+            }
+    }
+    
+    func removeCategoriesHandler(_ req: Request) -> EventLoopFuture<HTTPStatus> {
+        let eventQuery = Event.find(req.parameters.get("eventID"), on: req.db)
+            .unwrap(or: Abort(.notFound))
+        let categoryQuery = EventCategory.find(req.parameters.get("categoryID"), on: req.db)
+            .unwrap(or: Abort(.notFound))
+        return eventQuery.and(categoryQuery)
+            .flatMap { event, category in
+                event
+                    .$categories
+                    .detach(category, on: req.db)
+                    .transform(to: .noContent)
+            }
+    }
     
     func getFirstHandler(_ req: Request) -> EventLoopFuture<Event> {
-        return Event.query(on: req.db)
+        Event.query(on: req.db)
             .first()
             .unwrap(or: Abort(.notFound))
     }
-    
-//    func sortedHandler(_ req: Request) -> EventLoopFuture<[Event]> {
-//        return Event.query(on: req.db).sort(\.$name, .ascending).all()
-//    }
-    
+
     func getPlantHandler(_ req: Request) -> EventLoopFuture<Plant> {
         Event.find(req.parameters.get("eventID"), on: req.db)
             .unwrap(or: Abort(.notFound))

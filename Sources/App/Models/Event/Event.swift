@@ -14,6 +14,9 @@ final class Event: Model, Content {
     @Parent(key: "plantID")
     var plant: Plant
     
+    @Siblings(through: EventCategoryPivot.self, from: \.$event, to: \.$category)
+    var categories: [EventCategory]
+    
     //MARK:  Timestamps
     
     @Timestamp(key: "created_at", on: .create)
@@ -28,11 +31,9 @@ final class Event: Model, Content {
         id: UUID? = nil,
         notes: String?,
         plantID: Plant.IDValue
-//        type: String?
     ) {
         self.id = id
         self.notes = notes
-//        self.type = type
         self.$plant.id = plantID
     }
 }

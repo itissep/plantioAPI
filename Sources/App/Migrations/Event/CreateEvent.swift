@@ -5,7 +5,6 @@ struct CreateEvent: Migration {
         database.schema("events")
             .id()
             .field("notes", .string)
-//            .field("type", .string)
             .field("plantID", .uuid, .required, .references("plants", "id"))
             .field("created_at", .datetime)
             .field("updated_at", .datetime)
