@@ -23,7 +23,8 @@ final class Plant: Model, Content {
     @Parent(key: "userID")
     var user: User
     
-    // add event
+    @Children(for: \.$plant)
+    var events: [Event]
     
     //MARK:  Timestamps
     

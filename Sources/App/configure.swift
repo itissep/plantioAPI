@@ -15,6 +15,7 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreatePlant())
     app.migrations.add(CreateToken())
     app.migrations.add(CreateAdminUser())
+    app.migrations.add(CreateEvent())
     
     app.logger.logLevel = .debug
     

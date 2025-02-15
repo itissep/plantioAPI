@@ -8,7 +8,7 @@ struct UsersController: RouteCollection {
         usersRoute.post(use: createHandler)
         usersRoute.get(use: getAllHandler)
         usersRoute.get(":userID", use: getHandler)
-        usersRoute.get(":userID", "plants", use: getAcronymsHandler)
+        usersRoute.get(":userID", "plants", use: getPlantsHandler)
         
         let basicAuthMiddleware = User.authenticator()
         let basicAuthGroup = usersRoute.grouped(basicAuthMiddleware)
@@ -30,7 +30,7 @@ struct UsersController: RouteCollection {
         User.find(req.parameters.get("userID"), on: req.db).unwrap(or: Abort(.notFound)).convertToPublic()
     }
     
-    func getAcronymsHandler(_ req: Request) -> EventLoopFuture<[Plant]> {
+    func getPlantsHandler(_ req: Request) -> EventLoopFuture<[Plant]> {
         User.find(req.parameters.get("userID"), on: req.db).unwrap(or: Abort(.notFound)).flatMap { user in
             user.$plants.get(on: req.db)
         }

@@ -15,6 +15,7 @@ struct PlantsController: RouteCollection {
         plantsRoutes.get("sorted", use: sortedHandler)
         
         plantsRoutes.get(":plantID", "user", use: getUserHandler)
+        plantsRoutes.get(":plantID", "events", use: getEventsHandler)
         
         let tokenAuthMiddleware = Token.authenticator()
         let guardAuthMiddleware = User.guardMiddleware()
@@ -48,6 +49,12 @@ struct PlantsController: RouteCollection {
     func getHandler(_ req: Request) -> EventLoopFuture<Plant> {
         Plant.find(req.parameters.get("plantID"), on: req.db)
             .unwrap(or: Abort(.notFound))
+    }
+    
+    func getEventsHandler(_ req: Request) -> EventLoopFuture<[Event]> {
+        Plant.find(req.parameters.get("plantID"), on: req.db).unwrap(or: Abort(.notFound)).flatMap { plant in
+            plant.$events.get(on: req.db)
+        }
     }
     
     func updateHandler(_ req: Request) throws -> EventLoopFuture<Plant> {
