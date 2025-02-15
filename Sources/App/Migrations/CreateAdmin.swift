@@ -11,9 +11,13 @@ struct CreateAdminUser: Migration {
         }
         
         let user = User(
-            name: "Admin",
             username: "admin",
-            password: passwordHash)
+            password: passwordHash,
+            name: "Admin",
+            email: "email@me.com",
+            bio: "some bio",
+            avatarURL: nil
+        )
 
         return user.save(on: database)
     }

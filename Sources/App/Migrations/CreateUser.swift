@@ -1,4 +1,3 @@
-
 import Fluent
 
 struct CreateUser: Migration {
@@ -6,8 +5,13 @@ struct CreateUser: Migration {
         database.schema("users")
             .id()
             .field("name", .string, .required)
+            .field("email", .string, .required)
+            .field("bio", .string)
+            .field("avatarURL", .string)
             .field("username", .string, .required)
             .field("password", .string, .required)
+            .field("created_at", .datetime)
+            .field("updated_at", .datetime)
             .unique(on: "username")
             .create()
     }
