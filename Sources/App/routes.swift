@@ -9,4 +9,5 @@ func routes(_ app: Application) throws {
     try app.register(collection: EventsController())
     try app.register(collection: EventCategoriesController())
     try app.register(collection: PostsController())
+    try app.register(collection: CommentsController())
 }

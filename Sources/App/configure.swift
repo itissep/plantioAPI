@@ -19,6 +19,7 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateEventCategory())
     app.migrations.add(CreateEventCategoryPivot())
     app.migrations.add(CreatePost())
+    app.migrations.add(CreateComment())
     
     app.logger.logLevel = .debug
     

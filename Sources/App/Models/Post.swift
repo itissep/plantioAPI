@@ -25,10 +25,9 @@ final class Post: Model, Content {
     
     @OptionalParent(key: "plantID")
     var plant: Plant?
-    
-    // TODO: add comments
-//    @Children(for: \.$plant)
-//    var events: [Event]
+
+    @Children(for: \.$post)
+    var comments: [Comment]
     
     //MARK:  Timestamps
     

@@ -14,6 +14,8 @@ struct PostsController: RouteCollection {
         routes.get("sorted", use: sortedHandler)
         
         routes.get(":postID", "user", use: getUserHandler)
+        
+        routes.get(":postID", "comments", use: getCommentsHandler)
 //        routes.get(":postID", "plant", use: getPlantHandler)
         
         let tokenAuthMiddleware = Token.authenticator()
@@ -70,7 +72,6 @@ struct PostsController: RouteCollection {
     }
     
     func likeHandler(_ req: Request) throws -> EventLoopFuture<Post> {
-//        let updateData = try req.content.decode(CreatePostData.self)
         let user = try req.auth.require(User.self)
         let userID = try user.requireID().uuidString
         
@@ -113,6 +114,14 @@ struct PostsController: RouteCollection {
             .unwrap(or: Abort(.notFound))
             .flatMap { post in
                 post.$user.get(on: req.db).convertToPublic()
+            }
+    }
+    
+    func getCommentsHandler(_ req: Request) -> EventLoopFuture<[Comment]> {
+        Post.find(req.parameters.get("postID"), on: req.db)
+            .unwrap(or: Abort(.notFound))
+            .flatMap { post in
+                post.$comments.get(on: req.db)
             }
     }
     

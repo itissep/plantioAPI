@@ -32,8 +32,12 @@ final class User: Model, Content {
     @Children(for: \.$user)
     var plants: [Plant]
     
-    // add posts
-    // add comments
+    @Children(for: \.$user)
+    var posts: [Post]
+    
+    @Children(for: \.$user)
+    var comments: [Comment]
+
     // add notifications
     // add subscriptions
     
