@@ -25,6 +25,9 @@ final class Plant: Model, Content {
     
     @Children(for: \.$plant)
     var events: [Event]
+
+    @Children(for: \.$plant)
+    var posts: [Post]
     
     //MARK:  Timestamps
     
