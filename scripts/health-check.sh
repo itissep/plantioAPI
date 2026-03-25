@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Порты из .env (make health не подставляет env_file compose)
+if [[ -f "$ROOT/.env" ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  . "$ROOT/.env"
+  set +a
+fi
+
 SERVICES=(
   "http://localhost:${API_GATEWAY_PORT:-3000}/health"
   "http://localhost:${IDENTITY_SERVICE_PORT:-3001}/health"

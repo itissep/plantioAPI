@@ -13,6 +13,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/postgres-init-multiple-dbs.sh:/docker-entrypoint-initdb.d/00-create-multiple-dbs.sh:ro
     ports:
       - "5432:5432"
 
@@ -38,6 +39,15 @@ services:
       - plants-service
       - feed-service
       - notifications-service
+    command:
+      - /run/APIGateway
+      - serve
+      - --env
+      - production
+      - --hostname
+      - 0.0.0.0
+      - --port
+      - "3000"
     environment:
       DATABASE_NAME: ${GATEWAY_DB}
       IDENTITY_SERVICE_URL: http://identity-service:3001
@@ -55,6 +65,15 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+    command:
+      - /run/IdentityService
+      - serve
+      - --env
+      - production
+      - --hostname
+      - 0.0.0.0
+      - --port
+      - "3001"
     environment:
       DATABASE_NAME: ${IDENTITY_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
@@ -70,6 +89,15 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+    command:
+      - /run/PlantsService
+      - serve
+      - --env
+      - production
+      - --hostname
+      - 0.0.0.0
+      - --port
+      - "3002"
     environment:
       DATABASE_NAME: ${PLANTS_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
@@ -85,6 +113,15 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+    command:
+      - /run/FeedService
+      - serve
+      - --env
+      - production
+      - --hostname
+      - 0.0.0.0
+      - --port
+      - "3003"
     environment:
       DATABASE_NAME: ${FEED_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
@@ -99,6 +136,15 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - rabbitmq
+    command:
+      - /run/NotificationsService
+      - serve
+      - --env
+      - production
+      - --hostname
+      - 0.0.0.0
+      - --port
+      - "3004"
     environment:
       DATABASE_NAME: ${NOTIFICATIONS_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
