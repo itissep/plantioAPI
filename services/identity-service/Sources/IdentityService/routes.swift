@@ -6,24 +6,19 @@ func routes(_ app: Application) throws {
     }
 
     let auth = app.grouped("auth")
-    auth.post("register") { _ in
-        // TODO: implement
-        return HTTPStatus.notImplemented
-    }
+    auth.post("register", use: AuthController.register)
+    auth.post("login", use: AuthController.login)
+    auth.post("refresh", use: AuthController.refresh)
+    auth.post("logout", use: AuthController.logout)
 
-    auth.post("login") { _ in
-        // TODO: implement
-        return HTTPStatus.notImplemented
-    }
+    let users = app.grouped("users")
+    let bearer = UserBearerAuthenticator()
+    let protected = users.grouped(bearer).grouped(User.guardMiddleware())
 
-    auth.post("refresh") { _ in
-        // TODO: implement
-        return HTTPStatus.notImplemented
-    }
+    protected.get("me", use: UserController.me)
+    protected.put("me", use: UserController.updateMe)
+    protected.post(":userID", "follow", use: FollowController.follow)
+    protected.delete(":userID", "follow", use: FollowController.unfollow)
 
-    auth.post("logout") { _ in
-        // TODO: implement
-        return HTTPStatus.notImplemented
-    }
+    users.get(":userID", use: UserController.publicProfile)
 }
-

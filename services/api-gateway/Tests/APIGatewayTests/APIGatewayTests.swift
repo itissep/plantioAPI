@@ -26,13 +26,4 @@ struct APIGatewayTests {
             })
         }
     }
-
-    @Test("GET /v1/auth/health returns 501")
-    func authHealthNotImplemented() async throws {
-        try await withApp { app in
-            try await app.testing().test(.GET, "v1/auth/health", afterResponse: { res async in
-                #expect(res.status == .notImplemented)
-            })
-        }
-    }
 }

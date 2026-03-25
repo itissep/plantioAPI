@@ -1,7 +1,7 @@
 import Fluent
 import Vapor
 
-final class User: Model, Content {
+final class User: Model, Content, Authenticatable {
     static let schema = "users"
 
     @ID
@@ -33,5 +33,32 @@ final class User: Model, Content {
         self.passwordHash = passwordHash
         self.name = name
         self.avatar = avatar
+    }
+
+    struct Public: Content {
+        var id: UUID?
+        var email: String
+        var name: String
+        var avatar: String?
+
+        init(from user: User) {
+            self.id = user.id
+            self.email = user.email
+            self.name = user.name
+            self.avatar = user.avatar
+        }
+    }
+
+    /// Публичный профиль без email
+    struct PublicProfile: Content {
+        var id: UUID?
+        var name: String
+        var avatar: String?
+
+        init(from user: User) {
+            self.id = user.id
+            self.name = user.name
+            self.avatar = user.avatar
+        }
     }
 }

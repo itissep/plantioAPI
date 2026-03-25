@@ -7,10 +7,15 @@ func routes(_ app: Application) throws {
 
     let v1 = app.grouped("v1")
 
-    // Auth proxy placeholder
-    v1.get("auth", "health") { _ in
-        // later: proxy to identity-service
-        return HTTPStatus.notImplemented
-    }
-}
+    v1.post("auth", "register", use: proxyToIdentity)
+    v1.post("auth", "login", use: proxyToIdentity)
+    v1.post("auth", "refresh", use: proxyToIdentity)
+    v1.post("auth", "logout", use: proxyToIdentity)
 
+    let users = v1.grouped("users")
+    users.get("me", use: proxyToIdentity)
+    users.put("me", use: proxyToIdentity)
+    users.get(":userID", use: proxyToIdentity)
+    users.post(":userID", "follow", use: proxyToIdentity)
+    users.delete(":userID", "follow", use: proxyToIdentity)
+}

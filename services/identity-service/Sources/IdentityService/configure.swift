@@ -1,13 +1,18 @@
-import Vapor
 import Fluent
 import FluentPostgresDriver
 import FluentSQLiteDriver
+import JWT
+import Vapor
 
 public func configure(_ app: Application) throws {
-    // Database: in-memory SQLite for tests, Postgres otherwise
+    let jwtSecret = Environment.get("JWT_SECRET") ?? "local-dev-change-me-min-32-chars!!!!"
+    app.jwt.signers.use(.hs256(key: jwtSecret))
+
     if app.environment == .testing {
         app.databases.use(.sqlite(.memory), as: .sqlite)
         app.migrations.add(CreateUser())
+        app.migrations.add(CreateFollow())
+        app.migrations.add(CreateRefreshToken())
         try app.autoMigrate().wait()
     } else {
         let hostname = Environment.get("POSTGRES_HOST") ?? "postgres"
@@ -24,8 +29,10 @@ public func configure(_ app: Application) throws {
             as: .psql
         )
         app.migrations.add(CreateUser())
+        app.migrations.add(CreateFollow())
+        app.migrations.add(CreateRefreshToken())
+        try app.autoMigrate().wait()
     }
 
     try routes(app)
 }
-
