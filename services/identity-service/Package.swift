@@ -22,14 +22,16 @@ let package = Package(
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "JWT", package: "jwt")
-            ]
+            ],
+            path: "Sources/IdentityService"
         ),
         .testTarget(
             name: "IdentityServiceTests",
             dependencies: [
                 .target(name: "IdentityService"),
                 .product(name: "VaporTesting", package: "vapor")
-            ]
+            ],
+            path: "Tests/IdentityServiceTests"
         )
     ],
     swiftLanguageModes: [.v5]

@@ -4,8 +4,9 @@ WORKDIR /app
 
 COPY Package.swift ./
 COPY Sources ./Sources
+COPY Tests ./Tests
 
-RUN swift build --configuration release --static-swift-stdlib
+RUN swift build --configuration release --static-swift-stdlib --product FeedService
 
 FROM ubuntu:22.04
 

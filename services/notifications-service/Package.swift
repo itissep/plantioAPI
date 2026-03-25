@@ -20,14 +20,16 @@ let package = Package(
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")
-            ]
+            ],
+            path: "Sources/NotificationsService"
         ),
         .testTarget(
             name: "NotificationsServiceTests",
             dependencies: [
                 .target(name: "NotificationsService"),
                 .product(name: "VaporTesting", package: "vapor")
-            ]
+            ],
+            path: "Tests/NotificationsServiceTests"
         )
     ],
     swiftLanguageModes: [.v5]

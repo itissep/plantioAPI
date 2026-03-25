@@ -2,10 +2,12 @@ FROM swift:6.0-jammy as build
 
 WORKDIR /app
 
+# Нужны и Tests: иначе SPM может пометить тестовый таргет как «пересекающийся» с Sources
 COPY Package.swift ./
 COPY Sources ./Sources
+COPY Tests ./Tests
 
-RUN swift build --configuration release --static-swift-stdlib
+RUN swift build --configuration release --static-swift-stdlib --product IdentityService
 
 FROM ubuntu:22.04
 

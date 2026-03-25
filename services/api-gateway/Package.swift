@@ -14,14 +14,16 @@ let package = Package(
             name: "APIGateway",
             dependencies: [
                 .product(name: "Vapor", package: "vapor")
-            ]
+            ],
+            path: "Sources/APIGateway"
         ),
         .testTarget(
             name: "APIGatewayTests",
             dependencies: [
                 .target(name: "APIGateway"),
                 .product(name: "VaporTesting", package: "vapor")
-            ]
+            ],
+            path: "Tests/APIGatewayTests"
         )
     ],
     swiftLanguageModes: [.v5]
