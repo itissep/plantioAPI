@@ -1,0 +1,4 @@
+This directory will contain infrastructure configs:
+- docker-compose files
+- nginx configuration
+

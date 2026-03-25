@@ -1,0 +1,110 @@
+x-common-vars: &common-vars
+  env_file:
+    - .env.prod
+
+services:
+  postgres:
+    <<: *common-vars
+    image: postgres:16-alpine
+    container_name: flowersocial-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    <<: *common-vars
+    image: rabbitmq:3-management-alpine
+    container_name: flowersocial-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  api-gateway:
+    <<: *common-vars
+    image: ghcr.io/your-org/flowersocial-api-gateway:latest
+    restart: always
+    depends_on:
+      - postgres
+      - identity-service
+      - plants-service
+      - feed-service
+      - notifications-service
+    environment:
+      DATABASE_NAME: ${GATEWAY_DB}
+      IDENTITY_SERVICE_URL: http://identity-service:3001
+      PLANTS_SERVICE_URL: http://plants-service:3002
+      FEED_SERVICE_URL: http://feed-service:3003
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:3004
+    networks:
+      - web
+
+  identity-service:
+    <<: *common-vars
+    image: ghcr.io/your-org/flowersocial-identity-service:latest
+    restart: always
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      DATABASE_NAME: ${IDENTITY_DB}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+
+  plants-service:
+    <<: *common-vars
+    image: ghcr.io/your-org/flowersocial-plants-service:latest
+    restart: always
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      DATABASE_NAME: ${PLANTS_DB}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+
+  feed-service:
+    <<: *common-vars
+    image: ghcr.io/your-org/flowersocial-feed-service:latest
+    restart: always
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      DATABASE_NAME: ${FEED_DB}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+
+  notifications-service:
+    <<: *common-vars
+    image: ghcr.io/your-org/flowersocial-notifications-service:latest
+    restart: always
+    depends_on:
+      - rabbitmq
+    environment:
+      DATABASE_NAME: ${NOTIFICATIONS_DB}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+
+  nginx:
+    image: nginx:alpine
+    container_name: flowersocial-nginx
+    restart: always
+    depends_on:
+      - api-gateway
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
