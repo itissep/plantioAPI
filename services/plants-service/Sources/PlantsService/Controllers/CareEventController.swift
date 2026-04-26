@@ -24,7 +24,9 @@ enum CareEventController {
         let plantId = try plant.requireID()
         let body = try req.content.decode(CareEventCreateRequest.self)
         let kind = body.kind.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !kind.isEmpty else { throw Abort(.badRequest, reason: "kind required") }
+        guard CareEventKind.isValid(kind) else {
+            throw Abort(.badRequest, reason: "Invalid kind. Allowed: \(CareEventKind.allValues.joined(separator: ", "))")
+        }
         let occurred = body.occurredAt ?? Date()
         let notes = body.notes?.trimmingCharacters(in: .whitespacesAndNewlines)
         let ev = CareEvent(
