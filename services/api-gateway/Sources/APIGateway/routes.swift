@@ -1,9 +1,8 @@
 import Vapor
 
 func routes(_ app: Application) throws {
-    app.get("health") { _ in
-        "OK"
-    }
+    app.get("health") { _ in "OK" }
+    try registerOpenAPIRoutes(app)
 
     let v1 = app.grouped("v1")
 

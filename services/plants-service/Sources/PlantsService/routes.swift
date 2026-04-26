@@ -1,9 +1,8 @@
 import Vapor
 
 func routes(_ app: Application) throws {
-    app.get("health") { _ in
-        "OK"
-    }
+    app.get("health") { _ in "OK" }
+    try registerOpenAPIRoutes(app)
 
     let auth = JWTUserAuthenticator()
     let protected = app.grouped(auth).grouped(AuthenticatedUser.guardMiddleware())
