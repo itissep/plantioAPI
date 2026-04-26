@@ -5,10 +5,8 @@ func routes(_ app: Application) throws {
         "OK"
     }
 
-    let posts = app.grouped("posts")
-    posts.get { _ in
-        // TODO: implement list posts
-        return HTTPStatus.notImplemented
-    }
-}
+    let auth = JWTUserAuthenticator()
+    let protected = app.grouped(auth).grouped(AuthenticatedUser.guardMiddleware())
 
+    protected.get("posts", use: FeedController.index)
+}

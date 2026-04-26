@@ -21,4 +21,7 @@ func routes(_ app: Application) throws {
     protected.delete(":userID", "follow", use: FollowController.unfollow)
 
     users.get(":userID", use: UserController.publicProfile)
+
+    let internal_ = app.grouped("internal")
+    internal_.get("users", ":userID", "followers", use: UserController.followers)
 }

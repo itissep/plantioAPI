@@ -30,4 +30,18 @@ enum UserController {
         }
         return User.PublicProfile(from: user)
     }
+
+    static func followers(_ req: Request) async throws -> FollowerIDsResponse {
+        guard let id = req.parameters.get("userID", as: UUID.self) else {
+            throw Abort(.badRequest, reason: "Invalid user id")
+        }
+        let follows = try await Follow.query(on: req.db)
+            .filter(\.$followingID == id)
+            .all()
+        return FollowerIDsResponse(followerIDs: follows.map { $0.followerID })
+    }
+}
+
+struct FollowerIDsResponse: Content {
+    var followerIDs: [UUID]
 }

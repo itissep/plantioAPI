@@ -33,4 +33,6 @@ func routes(_ app: Application) throws {
     v1.delete("plants", ":plantID", "photos", ":photoID", use: proxyToPlants)
 
     v1.get("media", ":photoID", use: proxyToPlants)
+
+    v1.get("posts", use: proxyToFeed)
 }
