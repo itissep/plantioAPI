@@ -27,6 +27,8 @@ public func configure(_ app: Application) throws {
         app.lifecycle.use(CareEventConsumerLifecycle())
     }
 
+    app.wsManager = WebSocketManager()
+
     app.migrations.add(CreateNotification())
     try app.autoMigrate().wait()
 

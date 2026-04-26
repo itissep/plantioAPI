@@ -136,6 +136,9 @@ actor CareEventConsumer {
         let title = "New activity"
         let body = "Someone you follow performed a \(payload.kind)"
 
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+
         for recipientID in recipientIDs {
             let notification = Notification(
                 userID: recipientID,
@@ -146,6 +149,10 @@ actor CareEventConsumer {
             )
             do {
                 try await notification.save(on: db)
+                if let jsonData = try? encoder.encode(NotificationDTO(from: notification)),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    await app.wsManager.send(jsonString, to: recipientID)
+                }
             } catch {
                 app.logger.warning("NotificationsConsumer: failed to save notification for \(recipientID): \(error)")
             }

@@ -10,4 +10,26 @@ func routes(_ app: Application) throws {
 
     protected.get("notifications", use: NotificationsController.index)
     protected.post("notifications", ":notificationID", "read", use: NotificationsController.markRead)
+
+    app.webSocket("ws") { req, ws in
+        guard let token = req.query[String.self, at: "token"],
+              let payload = try? req.jwt.verify(token, as: AccessTokenPayload.self),
+              let userID = UUID(uuidString: payload.subject.value) else {
+            _ = ws.close(code: .policyViolation)
+            return
+        }
+
+        let manager = req.application.wsManager
+        Task {
+            await manager.add(ws, for: userID)
+            req.application.logger.info("WebSocket: user \(userID) connected")
+
+            ws.onClose.whenComplete { _ in
+                Task {
+                    await manager.remove(ws, for: userID)
+                    req.application.logger.info("WebSocket: user \(userID) disconnected")
+                }
+            }
+        }
+    }
 }
