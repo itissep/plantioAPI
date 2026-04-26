@@ -125,8 +125,6 @@ actor CareEventConsumer {
         app.logger.info("CareEventConsumer: received care_event.created for plant \(payload.plantId)")
 
         let followerIDs = await fetchFollowers(of: payload.userId)
-        guard !followerIDs.isEmpty else { return }
-
         await saveFeedPosts(payload: payload, followerIDs: followerIDs)
     }
 
@@ -145,6 +143,35 @@ actor CareEventConsumer {
 
     private func saveFeedPosts(payload: CareEventCreatedPayload, followerIDs: [UUID]) async {
         let db = app.db
+
+        // глобальная лента — один пост на событие
+        let globalPost = FeedPost(
+            ownerUserID: payload.userId,
+            authorUserID: payload.userId,
+            plantID: payload.plantId,
+            careEventID: payload.careEventId,
+            kind: payload.kind,
+            occurredAt: payload.occurredAt,
+            isGlobal: true
+        )
+        do { try await globalPost.save(on: db) } catch {
+            app.logger.warning("CareEventConsumer: failed to save global post: \(error)")
+        }
+
+        // лента автора (его собственная активность)
+        let authorPost = FeedPost(
+            ownerUserID: payload.userId,
+            authorUserID: payload.userId,
+            plantID: payload.plantId,
+            careEventID: payload.careEventId,
+            kind: payload.kind,
+            occurredAt: payload.occurredAt
+        )
+        do { try await authorPost.save(on: db) } catch {
+            app.logger.warning("CareEventConsumer: failed to save author post: \(error)")
+        }
+
+        // ленты подписчиков
         for followerID in followerIDs {
             let post = FeedPost(
                 ownerUserID: followerID,
@@ -160,6 +187,6 @@ actor CareEventConsumer {
                 app.logger.warning("CareEventConsumer: failed to save feed post for \(followerID): \(error)")
             }
         }
-        app.logger.info("CareEventConsumer: created \(followerIDs.count) feed posts")
+        app.logger.info("CareEventConsumer: created \(followerIDs.count + 2) feed posts")
     }
 }

@@ -25,6 +25,7 @@ public func configure(_ app: Application) throws {
             as: .psql
         )
         app.lifecycle.use(CareEventConsumerLifecycle())
+        app.lifecycle.use(CareReminderConsumerLifecycle())
     }
 
     app.wsManager = WebSocketManager()

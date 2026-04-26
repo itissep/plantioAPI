@@ -26,6 +26,7 @@ public func configure(_ app: Application) throws {
             as: .psql
         )
         app.careEventNotifier = RabbitMQManagementNotifier()
+        app.lifecycle.use(CareReminderSchedulerLifecycle())
     }
 
     app.migrations.add(CreatePlant())
