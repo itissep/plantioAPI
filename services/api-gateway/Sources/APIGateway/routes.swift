@@ -38,6 +38,9 @@ func routes(_ app: Application) throws {
 
     v1.get("posts", use: proxyToFeed)
     v1.get("posts", "global", use: proxyToFeed)
+    v1.get("posts", ":postID", "comments", use: proxyToFeed)
+    v1.post("posts", ":postID", "comments", use: proxyToFeed)
+    v1.delete("posts", ":postID", "comments", ":commentID", use: proxyToFeed)
 
     v1.get("notifications", use: proxyToNotifications)
     v1.post("notifications", ":notificationID", "read", use: proxyToNotifications)

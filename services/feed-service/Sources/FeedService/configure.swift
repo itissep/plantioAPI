@@ -10,6 +10,7 @@ public func configure(_ app: Application) throws {
 
     if app.environment == .testing {
         app.databases.use(.sqlite(.memory), as: .sqlite)
+        app.commentPublisher = NoOpCommentPublisher()
     } else {
         let hostname = Environment.get("POSTGRES_HOST") ?? "postgres"
         let username = Environment.get("POSTGRES_USER") ?? "plantio"
@@ -25,10 +26,12 @@ public func configure(_ app: Application) throws {
             as: .psql
         )
         app.lifecycle.use(CareEventConsumerLifecycle())
+        app.commentPublisher = RabbitMQCommentPublisher()
     }
 
     app.migrations.add(CreateFeedPost())
     app.migrations.add(AddIsGlobalToFeedPost())
+    app.migrations.add(CreateComment())
     try app.autoMigrate().wait()
 
     try routes(app)

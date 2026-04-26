@@ -26,6 +26,7 @@ public func configure(_ app: Application) throws {
         )
         app.lifecycle.use(CareEventConsumerLifecycle())
         app.lifecycle.use(CareReminderConsumerLifecycle())
+        app.lifecycle.use(CommentEventConsumerLifecycle())
     }
 
     app.wsManager = WebSocketManager()
