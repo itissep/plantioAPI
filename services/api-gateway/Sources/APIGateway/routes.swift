@@ -18,4 +18,19 @@ func routes(_ app: Application) throws {
     users.get(":userID", use: proxyToIdentity)
     users.post(":userID", "follow", use: proxyToIdentity)
     users.delete(":userID", "follow", use: proxyToIdentity)
+
+    v1.get("plants", use: proxyToPlants)
+    v1.post("plants", use: proxyToPlants)
+    v1.get("plants", ":plantID", use: proxyToPlants)
+    v1.put("plants", ":plantID", use: proxyToPlants)
+    v1.delete("plants", ":plantID", use: proxyToPlants)
+
+    v1.get("plants", ":plantID", "care-events", use: proxyToPlants)
+    v1.post("plants", ":plantID", "care-events", use: proxyToPlants)
+
+    v1.get("plants", ":plantID", "photos", use: proxyToPlants)
+    v1.post("plants", ":plantID", "photos", use: proxyToPlants)
+    v1.delete("plants", ":plantID", "photos", ":photoID", use: proxyToPlants)
+
+    v1.get("media", ":photoID", use: proxyToPlants)
 }

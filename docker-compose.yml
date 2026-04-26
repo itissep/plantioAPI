@@ -101,7 +101,10 @@ services:
     environment:
       DATABASE_NAME: ${PLANTS_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+      MEDIA_PATH: /app/media/uploads
       SERVICE_PORT: ${PLANTS_SERVICE_PORT}
+    volumes:
+      - ./data/plants-media:/app/media/uploads
     ports:
       - "${PLANTS_SERVICE_PORT}:3002"
 

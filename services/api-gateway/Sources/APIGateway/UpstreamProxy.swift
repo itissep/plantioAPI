@@ -1,9 +1,7 @@
 import Vapor
 
-/// Проксирует `/v1/...` на identity-service (путь без префикса `/v1`).
-func proxyToIdentity(_ req: Request) async throws -> Response {
-    let base = Environment.get("IDENTITY_SERVICE_URL") ?? "http://127.0.0.1:3001"
-    let trimmed = base.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+func proxyToUpstream(_ req: Request, baseURL: String) async throws -> Response {
+    let trimmed = baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     let path = req.url.path
     guard path.hasPrefix("/v1") else {
         throw Abort(.notFound)
@@ -32,4 +30,14 @@ func proxyToIdentity(_ req: Request) async throws -> Response {
         response.body = .init(buffer: buffer)
     }
     return response
+}
+
+func proxyToIdentity(_ req: Request) async throws -> Response {
+    let base = Environment.get("IDENTITY_SERVICE_URL") ?? "http://127.0.0.1:3001"
+    return try await proxyToUpstream(req, baseURL: base)
+}
+
+func proxyToPlants(_ req: Request) async throws -> Response {
+    let base = Environment.get("PLANTS_SERVICE_URL") ?? "http://127.0.0.1:3002"
+    return try await proxyToUpstream(req, baseURL: base)
 }
