@@ -28,6 +28,7 @@ public func configure(_ app: Application) throws {
     }
 
     app.migrations.add(CreateFeedPost())
+    app.migrations.add(AddIsGlobalToFeedPost())
     try app.autoMigrate().wait()
 
     try routes(app)

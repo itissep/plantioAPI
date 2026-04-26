@@ -25,6 +25,9 @@ final class FeedPost: Model, Content {
     @Field(key: "occurred_at")
     var occurredAt: Date
 
+    @Field(key: "is_global")
+    var isGlobal: Bool
+
     @Timestamp(key: "created_at", on: .create)
     var createdAt: Date?
 
@@ -37,7 +40,8 @@ final class FeedPost: Model, Content {
         plantID: UUID,
         careEventID: UUID,
         kind: String,
-        occurredAt: Date
+        occurredAt: Date,
+        isGlobal: Bool = false
     ) {
         self.id = id
         self.ownerUserID = ownerUserID
@@ -46,5 +50,6 @@ final class FeedPost: Model, Content {
         self.careEventID = careEventID
         self.kind = kind
         self.occurredAt = occurredAt
+        self.isGlobal = isGlobal
     }
 }

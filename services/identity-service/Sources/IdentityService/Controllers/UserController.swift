@@ -40,6 +40,32 @@ enum UserController {
             .all()
         return FollowerIDsResponse(followerIDs: follows.map { $0.followerID })
     }
+
+    static func followerProfiles(_ req: Request) async throws -> [User.PublicProfile] {
+        guard let id = req.parameters.get("userID", as: UUID.self) else {
+            throw Abort(.badRequest, reason: "Invalid user id")
+        }
+        let follows = try await Follow.query(on: req.db)
+            .filter(\.$followingID == id)
+            .all()
+        let ids = follows.map { $0.followerID }
+        guard !ids.isEmpty else { return [] }
+        let users = try await User.query(on: req.db).filter(\.$id ~~ ids).all()
+        return users.map(User.PublicProfile.init(from:))
+    }
+
+    static func followingProfiles(_ req: Request) async throws -> [User.PublicProfile] {
+        guard let id = req.parameters.get("userID", as: UUID.self) else {
+            throw Abort(.badRequest, reason: "Invalid user id")
+        }
+        let follows = try await Follow.query(on: req.db)
+            .filter(\.$followerID == id)
+            .all()
+        let ids = follows.map { $0.followingID }
+        guard !ids.isEmpty else { return [] }
+        let users = try await User.query(on: req.db).filter(\.$id ~~ ids).all()
+        return users.map(User.PublicProfile.init(from:))
+    }
 }
 
 struct FollowerIDsResponse: Content {

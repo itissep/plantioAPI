@@ -16,6 +16,8 @@ func routes(_ app: Application) throws {
     users.get("me", use: proxyToIdentity)
     users.put("me", use: proxyToIdentity)
     users.get(":userID", use: proxyToIdentity)
+    users.get(":userID", "followers", use: proxyToIdentity)
+    users.get(":userID", "following", use: proxyToIdentity)
     users.post(":userID", "follow", use: proxyToIdentity)
     users.delete(":userID", "follow", use: proxyToIdentity)
 
@@ -35,6 +37,7 @@ func routes(_ app: Application) throws {
     v1.get("media", ":photoID", use: proxyToPlants)
 
     v1.get("posts", use: proxyToFeed)
+    v1.get("posts", "global", use: proxyToFeed)
 
     v1.get("notifications", use: proxyToNotifications)
     v1.post("notifications", ":notificationID", "read", use: proxyToNotifications)
