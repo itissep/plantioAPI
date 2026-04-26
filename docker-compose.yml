@@ -116,6 +116,7 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+      - identity-service
     command:
       - /run/FeedService
       - serve
@@ -128,6 +129,7 @@ services:
     environment:
       DATABASE_NAME: ${FEED_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+      IDENTITY_SERVICE_URL: http://identity-service:3001
       SERVICE_PORT: ${FEED_SERVICE_PORT}
     ports:
       - "${FEED_SERVICE_PORT}:3003"
@@ -138,7 +140,9 @@ services:
       context: ./services/notifications-service
       dockerfile: Dockerfile
     depends_on:
+      - postgres
       - rabbitmq
+      - identity-service
     command:
       - /run/NotificationsService
       - serve
@@ -151,6 +155,7 @@ services:
     environment:
       DATABASE_NAME: ${NOTIFICATIONS_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+      IDENTITY_SERVICE_URL: http://identity-service:3001
       SERVICE_PORT: ${NOTIFICATIONS_SERVICE_PORT}
     ports:
       - "${NOTIFICATIONS_SERVICE_PORT}:3004"
