@@ -46,3 +46,8 @@ func proxyToFeed(_ req: Request) async throws -> Response {
     let base = Environment.get("FEED_SERVICE_URL") ?? "http://127.0.0.1:3003"
     return try await proxyToUpstream(req, baseURL: base)
 }
+
+func proxyToNotifications(_ req: Request) async throws -> Response {
+    let base = Environment.get("NOTIFICATIONS_SERVICE_URL") ?? "http://127.0.0.1:3004"
+    return try await proxyToUpstream(req, baseURL: base)
+}

@@ -35,4 +35,7 @@ func routes(_ app: Application) throws {
     v1.get("media", ":photoID", use: proxyToPlants)
 
     v1.get("posts", use: proxyToFeed)
+
+    v1.get("notifications", use: proxyToNotifications)
+    v1.post("notifications", ":notificationID", "read", use: proxyToNotifications)
 }
