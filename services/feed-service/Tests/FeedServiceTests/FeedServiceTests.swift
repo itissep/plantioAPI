@@ -27,11 +27,20 @@ struct FeedServiceTests {
         }
     }
 
-    @Test("GET /posts returns 501")
-    func postsNotImplemented() async throws {
+    @Test("GET /posts without auth returns 401")
+    func postsRequiresAuth() async throws {
         try await withApp { app in
             try await app.testing().test(.GET, "posts", afterResponse: { res async in
-                #expect(res.status == .notImplemented)
+                #expect(res.status == .unauthorized)
+            })
+        }
+    }
+
+    @Test("GET /posts/global returns 200")
+    func globalFeedPublic() async throws {
+        try await withApp { app in
+            try await app.testing().test(.GET, "posts/global", afterResponse: { res async in
+                #expect(res.status == .ok)
             })
         }
     }
