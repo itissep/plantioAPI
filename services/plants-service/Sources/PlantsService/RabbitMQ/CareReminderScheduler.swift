@@ -48,8 +48,8 @@ actor CareReminderChecker {
         let plants: [Plant]
         do {
             plants = try await Plant.query(on: db)
-                .filter(\.$wateringPeriod != nil)
                 .all()
+                .filter { $0.wateringPeriod != nil }
         } catch {
             app.logger.warning("CareReminderChecker: failed to query plants: \(error)")
             return
@@ -61,8 +61,8 @@ actor CareReminderChecker {
                   let plantID = plant.id else { continue }
 
             let lastWatering = try? await CareEvent.query(on: db)
-                .filter(\.$plant.$id == plantID)
-                .filter(\.$kind == "watering")
+                .filter(\.$plant.$id, .equal, plantID)
+                .filter(\.$kind, .equal, "watering")
                 .sort(\.$occurredAt, .descending)
                 .first()
 
