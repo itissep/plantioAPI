@@ -5,9 +5,9 @@ func routes(_ app: Application) throws {
         "OK"
     }
 
-    app.webSocket("ws") { req, ws in
-        // TODO: JWT auth and sessions
-        ws.send("connected")
-    }
-}
+    let auth = JWTUserAuthenticator()
+    let protected = app.grouped(auth).grouped(AuthenticatedUser.guardMiddleware())
 
+    protected.get("notifications", use: NotificationsController.index)
+    protected.post("notifications", ":notificationID", "read", use: NotificationsController.markRead)
+}

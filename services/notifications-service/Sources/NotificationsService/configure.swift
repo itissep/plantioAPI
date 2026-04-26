@@ -1,9 +1,13 @@
-import Vapor
 import Fluent
 import FluentPostgresDriver
 import FluentSQLiteDriver
+import JWT
+import Vapor
 
 public func configure(_ app: Application) throws {
+    let jwtSecret = Environment.get("JWT_SECRET") ?? "local-dev-change-me-min-32-chars!!!!"
+    app.jwt.signers.use(.hs256(key: jwtSecret))
+
     if app.environment == .testing {
         app.databases.use(.sqlite(.memory), as: .sqlite)
     } else {
@@ -20,7 +24,11 @@ public func configure(_ app: Application) throws {
             ),
             as: .psql
         )
+        app.lifecycle.use(CareEventConsumerLifecycle())
     }
+
+    app.migrations.add(CreateNotification())
+    try app.autoMigrate().wait()
+
     try routes(app)
 }
-
