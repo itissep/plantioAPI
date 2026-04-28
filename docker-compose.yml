@@ -77,6 +77,7 @@ services:
     environment:
       DATABASE_NAME: ${IDENTITY_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:3004
       SERVICE_PORT: ${IDENTITY_SERVICE_PORT}
     ports:
       - "${IDENTITY_SERVICE_PORT}:3001"

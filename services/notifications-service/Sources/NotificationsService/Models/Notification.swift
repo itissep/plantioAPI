@@ -19,11 +19,11 @@ final class Notification: Model, Content {
     @Field(key: "is_read")
     var isRead: Bool
 
-    @Field(key: "care_event_id")
-    var careEventID: UUID
+    @OptionalField(key: "care_event_id")
+    var careEventID: UUID?
 
-    @Field(key: "plant_id")
-    var plantID: UUID
+    @OptionalField(key: "plant_id")
+    var plantID: UUID?
 
     @Timestamp(key: "created_at", on: .create)
     var createdAt: Date?
@@ -35,8 +35,8 @@ final class Notification: Model, Content {
         userID: UUID,
         title: String,
         body: String,
-        careEventID: UUID,
-        plantID: UUID
+        careEventID: UUID? = nil,
+        plantID: UUID? = nil
     ) {
         self.id = id
         self.userID = userID

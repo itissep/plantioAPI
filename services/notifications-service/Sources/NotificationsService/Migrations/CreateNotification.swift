@@ -8,8 +8,8 @@ struct CreateNotification: AsyncMigration {
             .field("title", .string, .required)
             .field("body", .string, .required)
             .field("is_read", .bool, .required)
-            .field("care_event_id", .uuid, .required)
-            .field("plant_id", .uuid, .required)
+            .field("care_event_id", .uuid)
+            .field("plant_id", .uuid)
             .field("created_at", .datetime)
             .create()
     }

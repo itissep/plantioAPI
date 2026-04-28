@@ -1,6 +1,12 @@
 import Fluent
 import Vapor
 
+private struct FollowNotificationPayload: Encodable {
+    let followerID: UUID
+    let followedUserID: UUID
+    let followerName: String
+}
+
 enum FollowController {
     static func follow(_ req: Request) async throws -> Response {
         let current = try req.auth.require(User.self)
@@ -23,6 +29,26 @@ enum FollowController {
         }
         let follow = Follow(followerID: selfID, followingID: targetID)
         try await follow.save(on: req.db)
+
+        // Fire-and-forget follow notification
+        let appClient = req.application.client
+        let payload = FollowNotificationPayload(
+            followerID: selfID,
+            followedUserID: targetID,
+            followerName: current.name
+        )
+        if let data = try? JSONEncoder().encode(payload) {
+            Task {
+                let url = Environment.get("NOTIFICATIONS_SERVICE_URL") ?? "http://notifications-service:3004"
+                let uri = URI(string: "\(url)/internal/notify/follow")
+                var headers = HTTPHeaders()
+                headers.replaceOrAdd(name: .contentType, value: "application/json")
+                var clientReq = ClientRequest(method: .POST, url: uri, headers: headers)
+                clientReq.body = ByteBuffer(data: data)
+                _ = try? await appClient.send(clientReq)
+            }
+        }
+
         return Response(status: .created)
     }
 

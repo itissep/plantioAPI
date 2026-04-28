@@ -5,8 +5,8 @@ struct NotificationDTO: Content {
     var title: String
     var body: String
     var isRead: Bool
-    var careEventID: UUID
-    var plantID: UUID
+    var careEventID: UUID?
+    var plantID: UUID?
     var createdAt: Date?
 
     init(from n: Notification) {

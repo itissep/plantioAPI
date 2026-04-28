@@ -10,6 +10,9 @@ func routes(_ app: Application) throws {
     protected.get("notifications", use: NotificationsController.index)
     protected.post("notifications", ":notificationID", "read", use: NotificationsController.markRead)
 
+    // Internal endpoint — called by other services, no auth required
+    app.grouped("internal").post("notify", "follow", use: NotificationsController.notifyFollow)
+
     app.webSocket("ws") { req, ws in
         guard let token = req.query[String.self, at: "token"],
               let payload = try? req.jwt.verify(token, as: AccessTokenPayload.self),
