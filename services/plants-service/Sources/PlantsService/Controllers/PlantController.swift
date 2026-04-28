@@ -4,7 +4,17 @@ import Vapor
 enum PlantController {
     static func index(_ req: Request) async throws -> [PlantDTO] {
         let uid = try req.requireUserID()
-        let plants = try await Plant.query(on: req.db).filter(\.$userID == uid).all()
+        // Optional ?userID= query param — lets any authenticated user view another user's plants
+        let targetID: UUID
+        if let raw = req.query[String.self, at: "userID"], let id = UUID(uuidString: raw) {
+            targetID = id
+        } else {
+            targetID = uid
+        }
+        let plants = try await Plant.query(on: req.db)
+            .filter(\.$userID == targetID)
+            .sort(\.$createdAt, .ascending)
+            .all()
         return plants.map(PlantDTO.init(from:))
     }
 
