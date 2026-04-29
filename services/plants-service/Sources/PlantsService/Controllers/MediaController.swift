@@ -4,11 +4,10 @@ import Vapor
 
 enum MediaController {
     static func serve(_ req: Request) async throws -> Response {
-        let uid = try req.requireUserID()
         guard let photoID = req.parameters.get("photoID", as: UUID.self) else {
             throw Abort(.badRequest, reason: "Invalid photo id")
         }
-        guard let meta = try await PhotoMetadata.find(photoID, on: req.db), meta.userID == uid else {
+        guard let meta = try await PhotoMetadata.find(photoID, on: req.db) else {
             throw Abort(.notFound)
         }
         let path = MediaStorage.absoluteURL(for: meta.relativePath, app: req.application).path

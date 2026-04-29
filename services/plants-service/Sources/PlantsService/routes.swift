@@ -20,5 +20,5 @@ func routes(_ app: Application) throws {
     protected.post("plants", ":plantID", "photos", use: PhotoController.upload)
     protected.delete("plants", ":plantID", "photos", ":photoID", use: PhotoController.delete)
 
-    protected.get("media", ":photoID", use: MediaController.serve)
+    app.get("media", ":photoID", use: MediaController.serve)
 }

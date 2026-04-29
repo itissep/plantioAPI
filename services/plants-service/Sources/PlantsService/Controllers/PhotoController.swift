@@ -5,11 +5,13 @@ import Vapor
 
 enum PhotoController {
     static func index(_ req: Request) async throws -> [PhotoDTO] {
-        let uid = try req.requireUserID()
+        _ = try req.requireUserID()
         guard let plantID = req.parameters.get("plantID", as: UUID.self) else {
             throw Abort(.badRequest, reason: "Invalid plant id")
         }
-        _ = try await Plant.findOwned(id: plantID, userID: uid, on: req.db)
+        guard try await Plant.find(plantID, on: req.db) != nil else {
+            throw Abort(.notFound)
+        }
         let photos = try await PhotoMetadata.query(on: req.db)
             .filter(\PhotoMetadata.$plant.$id == plantID)
             .sort(\.$createdAt, .descending)
