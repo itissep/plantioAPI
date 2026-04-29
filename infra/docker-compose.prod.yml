@@ -43,8 +43,6 @@ services:
       PLANTS_SERVICE_URL: http://plants-service:3002
       FEED_SERVICE_URL: http://feed-service:3003
       NOTIFICATIONS_SERVICE_URL: http://notifications-service:3004
-    networks:
-      - web
 
   identity-service:
     <<: *common-vars
@@ -103,12 +101,6 @@ services:
       - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "8081:80"
-    networks:
-      - web
-
-networks:
-  web:
-    driver: bridge
 
 volumes:
   postgres_data:
