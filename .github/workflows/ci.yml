@@ -98,11 +98,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create .env
-        run: cp .env.ci .env
+        run: cp .env.ci .env && cp .env.ci .env.prod
 
       - name: Start full stack
-        run: docker compose up -d --build
+        run: docker compose -f docker-compose.yml -f infra/docker-compose.prod.yml up -d
         timeout-minutes: 10
 
       - name: Wait for services to be ready
