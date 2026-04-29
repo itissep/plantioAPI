@@ -16,6 +16,11 @@ services:
       - ./scripts/postgres-init-multiple-dbs.sh:/docker-entrypoint-initdb.d/00-create-multiple-dbs.sh:ro
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   rabbitmq:
     <<: *common-vars
@@ -27,6 +32,11 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672" # Management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
   api-gateway:
     <<: *common-vars
@@ -34,11 +44,16 @@ services:
       context: ./services/api-gateway
       dockerfile: Dockerfile
     depends_on:
-      - postgres
-      - identity-service
-      - plants-service
-      - feed-service
-      - notifications-service
+      postgres:
+        condition: service_healthy
+      identity-service:
+        condition: service_started
+      plants-service:
+        condition: service_started
+      feed-service:
+        condition: service_started
+      notifications-service:
+        condition: service_started
     command:
       - /run/APIGateway
       - serve
@@ -63,8 +78,10 @@ services:
       context: ./services/identity-service
       dockerfile: Dockerfile
     depends_on:
-      - postgres
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     command:
       - /run/IdentityService
       - serve
@@ -88,8 +105,10 @@ services:
       context: ./services/plants-service
       dockerfile: Dockerfile
     depends_on:
-      - postgres
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     command:
       - /run/PlantsService
       - serve
@@ -115,9 +134,12 @@ services:
       context: ./services/feed-service
       dockerfile: Dockerfile
     depends_on:
-      - postgres
-      - rabbitmq
-      - identity-service
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      identity-service:
+        condition: service_started
     command:
       - /run/FeedService
       - serve
@@ -141,9 +163,12 @@ services:
       context: ./services/notifications-service
       dockerfile: Dockerfile
     depends_on:
-      - postgres
-      - rabbitmq
-      - identity-service
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      identity-service:
+        condition: service_started
     command:
       - /run/NotificationsService
       - serve
