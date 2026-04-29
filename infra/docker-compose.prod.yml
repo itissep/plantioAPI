@@ -14,7 +14,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../scripts/postgres-init-multiple-dbs.sh:/docker-entrypoint-initdb.d/00-create-multiple-dbs.sh:ro
+      - ./scripts/postgres-init-multiple-dbs.sh:/docker-entrypoint-initdb.d/00-create-multiple-dbs.sh:ro
 
   rabbitmq:
     <<: *common-vars
@@ -100,7 +100,7 @@ services:
     depends_on:
       - api-gateway
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "80:80"
     networks:
