@@ -105,7 +105,7 @@ struct PlantsServiceTests {
                 #expect(updated.name == "Monstera XL")
             })
 
-            let careBody = ByteBuffer(string: #"{"kind":"water"}"#)
+            let careBody = ByteBuffer(string: #"{"kind":"watering"}"#)
             try await app.testing().test(
                 .POST,
                 "plants/\(plantId.uuidString)/care-events",
@@ -114,7 +114,7 @@ struct PlantsServiceTests {
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
                     let ev = try res.content.decode(CareEventDTO.self)
-                    #expect(ev.kind == "water")
+                    #expect(ev.kind == "watering")
                     #expect(ev.plantID == plantId)
                 }
             )
@@ -123,7 +123,7 @@ struct PlantsServiceTests {
                 #expect(res.status == .ok)
                 let events = try res.content.decode([CareEventDTO].self)
                 #expect(events.count == 1)
-                #expect(events[0].kind == "water")
+                #expect(events[0].kind == "watering")
             })
 
             try await app.testing().test(.DELETE, "plants/\(plantId.uuidString)", headers: headers, afterResponse: { res async throws in
