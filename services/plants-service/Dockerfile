@@ -2,7 +2,9 @@ FROM swift:6.0-jammy as build
 
 WORKDIR /app
 
-COPY Package.swift ./
+COPY Package.swift Package.resolved* ./
+RUN swift package resolve
+
 COPY Sources ./Sources
 COPY Tests ./Tests
 

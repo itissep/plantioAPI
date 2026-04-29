@@ -2,8 +2,10 @@ FROM swift:6.0-jammy as build
 
 WORKDIR /app
 
+COPY Package.swift Package.resolved* ./
+RUN swift package resolve
+
 # Нужны и Tests: иначе SPM может пометить тестовый таргет как «пересекающийся» с Sources
-COPY Package.swift ./
 COPY Sources ./Sources
 COPY Tests ./Tests
 

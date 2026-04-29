@@ -6,18 +6,20 @@ services:
   postgres:
     <<: *common-vars
     image: postgres:16-alpine
-    container_name: flowersocial-postgres
+    container_name: plantio-postgres
     restart: always
     environment:
+      POSTGRES_MULTIPLE_DATABASES: ${IDENTITY_DB},${PLANTS_DB},${FEED_DB},${GATEWAY_DB},${NOTIFICATIONS_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ../scripts/postgres-init-multiple-dbs.sh:/docker-entrypoint-initdb.d/00-create-multiple-dbs.sh:ro
 
   rabbitmq:
     <<: *common-vars
     image: rabbitmq:3-management-alpine
-    container_name: flowersocial-rabbitmq
+    container_name: plantio-rabbitmq
     restart: always
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
@@ -27,7 +29,7 @@ services:
 
   api-gateway:
     <<: *common-vars
-    image: ghcr.io/your-org/flowersocial-api-gateway:latest
+    image: ghcr.io/itissep/plantio-api-gateway:latest
     restart: always
     depends_on:
       - postgres
@@ -46,7 +48,7 @@ services:
 
   identity-service:
     <<: *common-vars
-    image: ghcr.io/your-org/flowersocial-identity-service:latest
+    image: ghcr.io/itissep/plantio-identity-service:latest
     restart: always
     depends_on:
       - postgres
@@ -54,10 +56,11 @@ services:
     environment:
       DATABASE_NAME: ${IDENTITY_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:3004
 
   plants-service:
     <<: *common-vars
-    image: ghcr.io/your-org/flowersocial-plants-service:latest
+    image: ghcr.io/itissep/plantio-plants-service:latest
     restart: always
     depends_on:
       - postgres
@@ -65,10 +68,13 @@ services:
     environment:
       DATABASE_NAME: ${PLANTS_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
+      MEDIA_PATH: /app/media/uploads
+    volumes:
+      - plants_media:/app/media/uploads
 
   feed-service:
     <<: *common-vars
-    image: ghcr.io/your-org/flowersocial-feed-service:latest
+    image: ghcr.io/itissep/plantio-feed-service:latest
     restart: always
     depends_on:
       - postgres
@@ -79,7 +85,7 @@ services:
 
   notifications-service:
     <<: *common-vars
-    image: ghcr.io/your-org/flowersocial-notifications-service:latest
+    image: ghcr.io/itissep/plantio-notifications-service:latest
     restart: always
     depends_on:
       - rabbitmq
@@ -89,7 +95,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: flowersocial-nginx
+    container_name: plantio-nginx
     restart: always
     depends_on:
       - api-gateway
@@ -107,4 +113,5 @@ networks:
 volumes:
   postgres_data:
   rabbitmq_data:
+  plants_media:
 
