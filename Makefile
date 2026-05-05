@@ -7,7 +7,6 @@ COMPOSE=docker compose
 	down-postgres down-rabbitmq down-infra \
 	down-identity down-plants down-feed down-notifications down-gateway
 
-# --- Full stack ---
 up:
 	$(COMPOSE) up -d --build
 
@@ -26,18 +25,18 @@ build:
 health:
 	bash ./scripts/health-check.sh
 
-# --- Infrastructure only ---
+# Инфра
 up-postgres:
 	$(COMPOSE) up -d postgres
 
 up-rabbitmq:
 	$(COMPOSE) up -d rabbitmq
 
-# Postgres + RabbitMQ (без приложений)
+# Postgres + RabbitMQ (для локальных прогонов)
 up-infra:
 	$(COMPOSE) up -d postgres rabbitmq
 
-# --- One app service + its dependencies (compose + --build for that service image) ---
+# Один сервис + его зависимости
 # Identity / Plants / Feed: нужны Postgres и RabbitMQ
 up-identity:
 	$(COMPOSE) up -d --build postgres rabbitmq identity-service
@@ -48,15 +47,15 @@ up-plants:
 up-feed:
 	$(COMPOSE) up -d --build postgres rabbitmq feed-service
 
-# Notifications: в compose зависит только от RabbitMQ
+# Notifications: зависит только от RabbitMQ
 up-notifications:
 	$(COMPOSE) up -d --build rabbitmq notifications-service
 
-# Gateway тянет за собой все сервисы из depends_on
+# API Gateway: зависит от всех
 up-gateway:
 	$(COMPOSE) up -d --build api-gateway
 
-# --- Stop individual pieces (контейнеры остаются, можно снова up) ---
+# Остановка контейнеров
 down-postgres:
 	$(COMPOSE) stop postgres
 
@@ -81,11 +80,11 @@ down-notifications:
 down-gateway:
 	$(COMPOSE) stop api-gateway
 
-# Run tests without Docker (in-memory SQLite / no DB)
+# Тесты (in-memory SQLite)
 test:
 	swift test
 
-# Run tests only for microservices (no Postgres/RabbitMQ needed)
+# Тесты для микросервисов (без Postgres/RabbitMQ)
 test-services:
 	cd services/identity-service && swift test
 	cd services/plants-service && swift test
