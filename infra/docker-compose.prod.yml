@@ -91,12 +91,22 @@ services:
       DATABASE_NAME: ${NOTIFICATIONS_DB}
       RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672${RABBITMQ_VHOST}
 
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    restart: always
+    environment:
+      SWAGGER_JSON: /openapi.yaml
+      BASE_URL: /docs
+    volumes:
+      - ./openapi.yaml:/openapi.yaml:ro
+
   nginx:
     image: nginx:alpine
     container_name: plantio-nginx
     restart: always
     depends_on:
       - api-gateway
+      - swagger-ui
     volumes:
       - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:

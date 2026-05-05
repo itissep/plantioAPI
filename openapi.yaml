@@ -1,0 +1,1083 @@
+openapi: "3.0.3"
+
+info:
+  title: Plantio API
+  description: |
+    REST API for the Plantio plant care social network.
+    All requests go through the API Gateway at port 3000.
+
+    **Authentication:** Most endpoints require a Bearer JWT token obtained via `/v1/auth/register` or `/v1/auth/login`.
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:3000/v1
+    description: Local development (API Gateway)
+
+tags:
+  - name: Auth
+    description: Registration, login, token refresh and logout
+  - name: Users
+    description: User profiles and social connections
+  - name: Plants
+    description: Plant management
+  - name: CareEvents
+    description: Plant care events (watering, fertilizing, etc.)
+  - name: Photos
+    description: Plant photos
+  - name: Feed
+    description: Social activity feed
+  - name: Comments
+    description: Post comments
+  - name: Notifications
+    description: User notifications
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ── Auth ──────────────────────────────────────────────────────────────────
+    RegisterRequest:
+      type: object
+      required: [email, password, name]
+      properties:
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        password:
+          type: string
+          minLength: 8
+          example: secret1234
+        name:
+          type: string
+          example: Alice
+        avatar:
+          type: string
+          nullable: true
+          example: null
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        password:
+          type: string
+          example: secret1234
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          example: eyJhbGci...
+
+    LogoutRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          example: eyJhbGci...
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGci...
+        refreshToken:
+          type: string
+          example: eyJhbGci...
+        user:
+          $ref: "#/components/schemas/UserPrivate"
+
+    # ── Users ─────────────────────────────────────────────────────────────────
+    UserPrivate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        avatar:
+          type: string
+          nullable: true
+
+    UserPublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        avatar:
+          type: string
+          nullable: true
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Alice Updated
+        avatar:
+          type: string
+          nullable: true
+          example: null
+
+    # ── Plants ────────────────────────────────────────────────────────────────
+    Plant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userID:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Monstera
+        description:
+          type: string
+          nullable: true
+          example: My favourite plant
+        species:
+          type: string
+          nullable: true
+          example: Monstera deliciosa
+        wateringPeriod:
+          type: integer
+          nullable: true
+          description: Days between watering
+          example: 7
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreatePlantRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: Monstera
+        description:
+          type: string
+          nullable: true
+        species:
+          type: string
+          nullable: true
+        wateringPeriod:
+          type: integer
+          nullable: true
+
+    UpdatePlantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        species:
+          type: string
+          nullable: true
+        wateringPeriod:
+          type: integer
+          nullable: true
+
+    # ── Care Events ───────────────────────────────────────────────────────────
+    CareEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        plantID:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [watering, fertilizing, repotting, note]
+        notes:
+          type: string
+          nullable: true
+        occurredAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateCareEventRequest:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [watering, fertilizing, repotting, note]
+          example: watering
+        notes:
+          type: string
+          nullable: true
+          example: Used filtered water
+        occurredAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Defaults to current time if omitted
+
+    # ── Photos ────────────────────────────────────────────────────────────────
+    Photo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        plantID:
+          type: string
+          format: uuid
+        mimeType:
+          type: string
+          example: image/jpeg
+        byteSize:
+          type: integer
+          example: 204800
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Feed ──────────────────────────────────────────────────────────────────
+    FeedPost:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorUserID:
+          type: string
+          format: uuid
+        plantID:
+          type: string
+          format: uuid
+        careEventID:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [watering, fertilizing, repotting, note]
+        occurredAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Comments ──────────────────────────────────────────────────────────────
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        postID:
+          type: string
+          format: uuid
+        authorUserID:
+          type: string
+          format: uuid
+        text:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateCommentRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          example: Beautiful plant!
+
+    # ── Notifications ─────────────────────────────────────────────────────────
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: New follower
+        body:
+          type: string
+          example: Bob started following you
+        isRead:
+          type: boolean
+        careEventID:
+          type: string
+          format: uuid
+          nullable: true
+        plantID:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Errors ────────────────────────────────────────────────────────────────
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: boolean
+          example: true
+        reason:
+          type: string
+          example: Email already registered
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+# ── Paths ──────────────────────────────────────────────────────────────────────
+paths:
+
+  # ── Auth ────────────────────────────────────────────────────────────────────
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "200":
+          description: Account created, tokens returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Tokens returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: New token pair returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Invalidate refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out
+
+  # ── Users ────────────────────────────────────────────────────────────────────
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPrivate"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    put:
+      tags: [Users]
+      summary: Update current user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPrivate"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/{userID}:
+    get:
+      tags: [Users]
+      summary: Get public user profile
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Public profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPublic"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{userID}/followers:
+    get:
+      tags: [Users]
+      summary: List user followers
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of followers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserPublic"
+
+  /users/{userID}/following:
+    get:
+      tags: [Users]
+      summary: List users that the user follows
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of followed users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserPublic"
+
+  /users/{userID}/follow:
+    post:
+      tags: [Users]
+      summary: Follow a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Now following
+        "400":
+          description: Cannot follow yourself
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    delete:
+      tags: [Users]
+      summary: Unfollow a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Unfollowed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ── Plants ────────────────────────────────────────────────────────────────────
+  /plants:
+    get:
+      tags: [Plants]
+      summary: List plants
+      description: Returns current user's plants. Pass `userID` to view another user's plants.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userID
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: View plants of a specific user
+      responses:
+        "200":
+          description: List of plants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plant"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      tags: [Plants]
+      summary: Create a plant
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePlantRequest"
+      responses:
+        "200":
+          description: Created plant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plant"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /plants/{plantID}:
+    parameters:
+      - name: plantID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Plants]
+      summary: Get a plant
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Plant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plant"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      tags: [Plants]
+      summary: Update a plant
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePlantRequest"
+      responses:
+        "200":
+          description: Updated plant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plant"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      tags: [Plants]
+      summary: Delete a plant
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Care Events ────────────────────────────────────────────────────────────────
+  /plants/{plantID}/care-events:
+    parameters:
+      - name: plantID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [CareEvents]
+      summary: List care events for a plant
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of care events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CareEvent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      tags: [CareEvents]
+      summary: Log a care event
+      description: Creates a care event and publishes it to RabbitMQ for the feed and notifications services.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCareEventRequest"
+      responses:
+        "200":
+          description: Created care event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareEvent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ── Photos ─────────────────────────────────────────────────────────────────────
+  /plants/{plantID}/photos:
+    parameters:
+      - name: plantID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Photos]
+      summary: List photos for a plant
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of photos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Photo"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      tags: [Photos]
+      summary: Upload a photo
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: "Image file. Allowed: image/jpeg, image/png, image/webp. Max size: 10 MB."
+      responses:
+        "200":
+          description: Uploaded photo metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Photo"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "413":
+          description: File exceeds 10 MB limit
+        "415":
+          description: Unsupported MIME type
+
+  /plants/{plantID}/photos/{photoID}:
+    parameters:
+      - name: plantID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: photoID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    delete:
+      tags: [Photos]
+      summary: Delete a photo
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /media/{photoID}:
+    get:
+      tags: [Photos]
+      summary: Download a photo file (public)
+      parameters:
+        - name: photoID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Raw image binary
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Feed ───────────────────────────────────────────────────────────────────────
+  /posts:
+    get:
+      tags: [Feed]
+      summary: Get personal feed
+      description: Returns posts from users the current user follows, plus their own activity.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedPost"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /posts/global:
+    get:
+      tags: [Feed]
+      summary: Get global feed (public)
+      description: Returns all public posts from all users.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated global feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedPost"
+
+  # ── Comments ───────────────────────────────────────────────────────────────────
+  /posts/{postID}/comments:
+    parameters:
+      - name: postID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Comments]
+      summary: List comments on a post
+      responses:
+        "200":
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    post:
+      tags: [Comments]
+      summary: Add a comment to a post
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentRequest"
+      responses:
+        "200":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /posts/{postID}/comments/{commentID}:
+    parameters:
+      - name: postID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: commentID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    delete:
+      tags: [Comments]
+      summary: Delete a comment
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Notifications ──────────────────────────────────────────────────────────────
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications for current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/{notificationID}/read:
+    post:
+      tags: [Notifications]
+      summary: Mark a notification as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notificationID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
